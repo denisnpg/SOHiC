@@ -1,4 +1,4 @@
-name: LUDe
+name: SOHiC
 channels:
 - rdkit
 - conda-forge
