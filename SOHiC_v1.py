@@ -1,7 +1,7 @@
 """
 Created on Mon Nov  2 21:32:18 2020
 
-@author: Lucas
+@author: LIDeB
 """
 
 from datetime import date
@@ -20,9 +20,9 @@ import random
 from statistics import mean, stdev
 import numpy as np
 import plotly.figure_factory as ff
-import plotly.express as px
-
-
+import sys
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Configuracion de las imagenes que se descargan en el boton del html
 formato = "svg"     # formatos posibles: png, svg, jpeg, webp
@@ -126,11 +126,15 @@ def similarity(df_1):
 
     # Fingerprints
     for m in df_1:
-        mol = Chem.MolFromSmiles(m)
-        fp_1 = AllChem.GetMorganFingerprintAsBitVect(mol,fingerprint_radio,nBits=fingerprint_lenght,useFeatures=True)
-        fps_1.append(fp_1)
-        fps_2.append(fp_1)
-        
+        try:
+            mol = Chem.MolFromSmiles(m)
+            fp_1 = AllChem.GetMorganFingerprintAsBitVect(mol,fingerprint_radio,nBits=fingerprint_lenght,useFeatures=True)
+            fps_1.append(fp_1)
+            fps_2.append(fp_1)
+        except:
+            st.write("We have a problem with molecule: " + str(m))
+            st.error('Please review your input molecules or remove the above molecule')
+            st.stop()
     # Similarity  
     matriz_tanimoto = []
     for finger1 in fps_1:
@@ -146,7 +150,7 @@ def similarity(df_1):
     df_ok.index = filas
     df_ok.columns = columnas
     df2 = 1 - df_ok
-    return df2
+    return df2, df_1
  
 
 # Dendrogram and silhouette
@@ -171,9 +175,17 @@ def dendrogram_and_evaluation(df2):
                 dense_clusters.append(1)
             else:
                 outliers_ok.append(1)
-        silhouette = silhouette_score(df2, clusters_final, metric='precomputed')
-        ok = [x,silhouette,len(small_clusters),len(dense_clusters),len(outliers_ok)]
-        tabla_silhouettes.append(ok)
+        
+        try:
+            silhouette = silhouette_score(df2, clusters_final, metric='precomputed')
+            ok = [x,silhouette,len(small_clusters),len(dense_clusters),len(outliers_ok)]
+            tabla_silhouettes.append(ok)
+        except:
+            st.write("The number of clusters is equal to the number of molecules, try decreasing Morgan's radius")
+            st.error('Please review your parameters')
+            st.stop()
+
+        
     tabla_final = pd.DataFrame(tabla_silhouettes)
     tabla_final.rename(columns={0: 'Distance_cutoff', 1:"Silhouette",2:"Small clusters",3:"Dense clusters", 4:"Outliers"},inplace=True)
 
@@ -186,11 +198,63 @@ def dendrogram_and_evaluation(df2):
     st.plotly_chart(fig)
     
     # Scatter silhouette
-    def grafica_silhouette(df):
+    # def grafica_silhouette(df):
         
-        fig2 = px.line(df, x="Distance_cutoff", y="Silhouette", hover_data=["Small clusters", "Dense clusters", "Outliers"])    
-        fig2.update_traces(mode='lines+markers')
-        st.plotly_chart(fig2)
+    #     fig2 = px.line(df, x="Distance_cutoff", y="Silhouette", hover_data=["Small clusters", "Dense clusters", "Outliers"])    
+    #     fig2.update_traces(mode='lines+markers')
+    #     st.plotly_chart(fig2)
+    #     st.markdown("You can download the figures clicking in the camara icon :blush: ")
+    #     st.markdown("**Small clusters** have between 2 and " + str(int(limit_dense)) + " molecules")
+    #     st.markdown("**Dense clusters** have at least " + str(int(limit_dense)) + " molecules")
+    #     st.markdown("We have considered **outliers** to the molecules that do not integrate any clusters")
+        
+    # grafica_silhouette(tabla_final)
+
+    # Scatter silhouette v3
+    def grafica_silhouette(df):
+
+
+        # Create figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        # fig = go.Figure()
+
+        # Add traces
+        fig.add_trace(go.Scatter(x=df["Distance_cutoff"], y=df["Small clusters"],
+                            mode='lines+markers',
+                            name='Small clusters'))
+        fig.add_trace(go.Scatter(x=df["Distance_cutoff"], y=df["Dense clusters"],
+                            mode='lines+markers',
+                            name='Dense clusters'))
+        fig.add_trace(go.Scatter(x=df["Distance_cutoff"], y=df["Outliers"],
+                            mode='lines+markers',
+                            name='Outliers'))
+
+        fig.add_trace(go.Scatter(x=df["Distance_cutoff"], y=df["Silhouette"].round(2),
+                            mode='lines+markers',
+                            name='Silhouette'),secondary_y=True)
+        
+        fig.update_layout(plot_bgcolor = 'rgb(256,256,256)', hovermode='x',
+                          legend_x = 0.70, legend_y = 1,legend_borderwidth=0.2,)
+        fig.update_xaxes(title_text='Distance cutoff', showgrid=False, 
+                          showline=True, linecolor='black', gridcolor='lightgrey',
+                          range= [0,maximo + 1],
+                          tickfont=dict(family='Calibri', size=16, color='black'), ticks = 'outside', tickson = 'labels',
+                          title_font = dict(size=23, family='Calibri', color='black'))
+        
+        fig.update_yaxes(title_text='Number of Molecules', showgrid=False,secondary_y=False,
+                          showline=True, linecolor='black', gridcolor='lightgrey', 
+                          tickfont=dict(family='Calibri', size=16, color='black'),
+                          title_font = dict(size=23, family='Calibri', color='black'))
+
+        fig.update_yaxes(title_text='Silhouette Score', showgrid=False,secondary_y=True,
+                          showline=True, linecolor='black', gridcolor='lightgrey', 
+                          tickfont=dict(family='Calibri', size=16, color='black'),
+                          title_font = dict(size=23, family='Calibri', color='black'))
+        st.plotly_chart(fig)
+        
+        # fig2 = px.line(df, x="Distance_cutoff", y="Silhouette", hover_data=["Small clusters", "Dense clusters", "Outliers"])    
+        # fig2.update_traces(mode='lines+markers')
+        # st.plotly_chart(fig2)
         st.markdown("You can download the figures clicking in the camara icon :blush: ")
         st.markdown("**Small clusters** have between 2 and " + str(int(limit_dense)) + " molecules")
         st.markdown("**Dense clusters** have at least " + str(int(limit_dense)) + " molecules")
@@ -198,16 +262,18 @@ def dendrogram_and_evaluation(df2):
         
     grafica_silhouette(tabla_final)
 
+
     return ddgm
     
 #%% File downloads
 
-def filedownload(df2,ddgm):
+def filedownload(df2,ddgm,df1):
     clusters_final = fcluster(ddgm, t=cutoff_clusters, criterion='distance')
     clusters_final1 = pd.DataFrame(clusters_final)
     coeficientes_clustering(df2, clusters_final)
     clusters_final = pd.concat((pd.DataFrame(clusters_final1.index.values.tolist(), columns=['Molecule']),pd.DataFrame(clusters_final, columns=['CLUSTER'])), axis=1)
-    csv = clusters_final.to_csv(index=False,header=True)
+    clusters_final.index = df1
+    csv = clusters_final.to_csv(index=True,header=True)
     b64 = base64.b64encode(csv.encode()).decode()  # strings <-> bytes conversions
     st.markdown(":point_down: **Here you can dowload the cluster assignation**", unsafe_allow_html=True)
     href = f'<a href="data:file/csv;base64,{b64}" download="cluster_assignation.csv">Download CSV File with your clusters</a>'
@@ -312,13 +378,13 @@ if uploaded_file_1 is not None:
     run = st.button("RUN")
     if run == True:
         df_1 = pd.read_csv(uploaded_file_1,sep="\t",header=None)
-        df2 = similarity(df_1)
+        df2, df1 = similarity(df_1)
         ddgm = dendrogram_and_evaluation(df2)
         if ready == False:
             st.markdown('**Once you have identified the optimal cutoff, re-run the clustering but checking the option of "optimal cutoff" ** :exclamation: :exclamation: :exclamation:')
         if ready == True:          
             if cutoff_clusters is not None:
-                st.markdown(filedownload(df2,ddgm), unsafe_allow_html=True)
+                st.markdown(filedownload(df2,ddgm,df1), unsafe_allow_html=True)
                 st.markdown("-------------------")
                 settings_df = setting_info()
                 st.markdown(":point_down: **Here you can download your settings**", unsafe_allow_html=True)
@@ -329,13 +395,13 @@ else:
     st.info('Awaiting for TXT file to be uploaded.')
     if st.button('Press to use Example Dataset'):
         df_1 = pd.read_csv("molecules_1.txt",sep="\t",header=None)
-        df2 = similarity(df_1)
+        df2, df1 = similarity(df_1)
         ddgm = dendrogram_and_evaluation(df2)
         if ready == False:
             st.markdown('**Once you have identified the optimal cutoff, re-run the clustering but checking the option of "optimal cutoff" ** :exclamation: :exclamation: :exclamation:')
         if ready == True:          
             if cutoff_clusters is not None:
-                st.markdown(filedownload(df2,ddgm), unsafe_allow_html=True)
+                st.markdown(filedownload(df2,ddgm,df1), unsafe_allow_html=True)
                 st.markdown("-------------------")
                 settings_df = setting_info()
                 st.markdown(":point_down: **Here you can download your settings**", unsafe_allow_html=True)
