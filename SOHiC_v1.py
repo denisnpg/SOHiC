@@ -59,7 +59,7 @@ st.markdown(":computer:""**Web Site** " "<https://lideb.biol.unlp.edu.ar>")
 st.write("""
 # CHiCA Web App
 
-**Web App to cluster molecules that ins based in Morgan fingerprints, tanimoto similarity and different hierarchical clustering methods.**
+**CHiCA implements a diversity of classic hierarchical agglomerative clustering approaches. CHiCA allows the user, by use of interactive graphs, an intuitive and visual choice of the number of clusters to consider.**
 
 The tool uses the following packages [RDKIT](https://www.rdkit.org/docs/index.html), [Scikit-learn](https://scikit-learn.org/stable/), [Plotly](https://plotly.com/python/), [Scipy](https://www.scipy.org/)
 
