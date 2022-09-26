@@ -57,7 +57,7 @@ st.markdown(":computer:""**Web Site** " "<https://lideb.biol.unlp.edu.ar>")
 
 #---------------------------------#
 st.write("""
-# LIDeB Tools - Hierarchichal Clustering
+# CHiCA Web App
 
 **Web App to cluster molecules that ins based in Morgan fingerprints, tanimoto similarity and different hierarchical clustering methods.**
 
