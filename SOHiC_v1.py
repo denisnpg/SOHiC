@@ -34,7 +34,7 @@ escala_letras = 1   #  Multiply title/legend/axis/canvas sizes by this factor
 #---------------------------------#
 # Page layout
 ## Page expands to full width
-st.set_page_config(page_title='LIDEB Tools - Hierarchical Clustering',
+st.set_page_config(page_title='LIDEB Tools - CHiCA',
     layout='wide')
 
 ######
