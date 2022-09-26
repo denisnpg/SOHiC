@@ -63,9 +63,6 @@ st.write("""
 
 The tool uses the following packages [RDKIT](https://www.rdkit.org/docs/index.html), [Scikit-learn](https://scikit-learn.org/stable/), [Plotly](https://plotly.com/python/), [Scipy](https://www.scipy.org/)
 
-The next workflow summarizes the steps performed by this method:
-
-
 """)
 
 text = '''
