@@ -97,7 +97,7 @@ fingerprint_lenght = st.sidebar.slider('Set the fingerprint lenght', 512, 2048, 
 similarity_metric = st.sidebar.selectbox("Select the similarity metric", ("TanimotoSimilarity", "DiceSimilarity", "CosineSimilarity", "SokalSimilarity", "KulczynskiSimilarity", "McConnaugheySimilarity"),0)
 
 # Método por el cual la matriz de distancia es recalculada una vez que se forma cada cluser. Mas info aca: https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html
-metodo = st.sidebar.selectbox("Clustering method", ("ward", "single", "complete", "average", "weighted", "centroid", "median"),0)
+metodo = st.sidebar.selectbox("Clustering method", ("single", "complete", "average", "weighted"),0)
 
 # Metodo para determinar la distancia entre observaciones en un espacio p-dimensional. # Mas info aca: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html
 metrica= "euclidean"     # metricas posibles: ‘braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’, ‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’, ‘jensenshannon’, ‘kulsinski’, ‘mahalanobis’, ‘matching’, ‘minkowski’, ‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, ‘sokalmichener’, ‘sokalsneath’, ‘sqeuclidean’, ‘yule’.
